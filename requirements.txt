@@ -1,0 +1,7 @@
+numpy
+Flask
+Flask_Cors
+latex2sympy2
+scipy
+sympy
+matplotlib
