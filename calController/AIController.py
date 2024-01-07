@@ -24,9 +24,9 @@ class AIController:
     def AIforApp():
         if request.method == "POST":
             try:
-                if not os.path.exists(model_dir):
-                    url = "https://drive.google.com/file/d/1sjb2oUc00oIrh3FCIDYipvEEb_z-9Y2b/view?usp=drive_link"
-                    gdown.download(url, model_dir, quiet=False,fuzzy=True)
+                # if not os.path.exists(model_dir):
+                #     url = "https://drive.google.com/file/d/1sjb2oUc00oIrh3FCIDYipvEEb_z-9Y2b/view?usp=drive_link"
+                #     gdown.download(url, model_dir, quiet=False,fuzzy=True)
                     
                 if 'regenerate_status' in request.json:
                     regenerate_status = request.json['regenerate_status']
