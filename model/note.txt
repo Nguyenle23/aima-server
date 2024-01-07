@@ -1,1 +1,0 @@
-Note for this file to download model.pth file from the link below and place it in the same directory as this file.

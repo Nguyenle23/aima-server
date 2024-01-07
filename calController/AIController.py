@@ -17,17 +17,20 @@ import cv2
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 server_dir = os.path.dirname(os.path.dirname(script_dir))
-model_dir = os.path.join(server_dir, 'aima-server' ,'model', 'model.pth')
-print(f"{model_dir}")
 
 class AIController:
     def AIforApp():
         if request.method == "POST":
             try:
-                # if not os.path.exists(model_dir):
-                #     url = "https://drive.google.com/file/d/1sjb2oUc00oIrh3FCIDYipvEEb_z-9Y2b/view?usp=drive_link"
-                #     gdown.download(url, model_dir, quiet=False,fuzzy=True)
+                model_dir = os.path.join(server_dir, 'aima-server/model/model.pth')
+
+                if not os.path.exists(model_dir):
+                    print('NO')
+                    url = "https://drive.google.com/file/d/1sjb2oUc00oIrh3FCIDYipvEEb_z-9Y2b/view?usp=drive_link"
+                    gdown.download(url, model_dir, quiet=False,fuzzy=True)
                     
+                print('YES')
+                print('excute model')
                 if 'regenerate_status' in request.json:
                     regenerate_status = request.json['regenerate_status']
                 else:
