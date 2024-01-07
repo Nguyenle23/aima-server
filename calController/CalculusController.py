@@ -15,9 +15,6 @@ class CalculusController:
     def fundamental():
         if request.method == "POST":
             try:
-                # os.chdir("flask-server") 
-                # file_name = 'mixed_e25_step16296.pth'
-                # print(os.path.abspath(file_name)) 
                 temp_symbol = '###'
                 def format_output(output):
                     pattern_power = r'\(([^)]+)\)\^\(([^)]+)\)'
@@ -40,11 +37,6 @@ class CalculusController:
                 sympy_converter = latex2sympy(expr)
                 solution = latex2latex(expr)
 
-                # solution_old = latex2latex(expr)
-                # try:
-                #     solution = latex(expand(latex2sympy(solution_old)))
-                # except:
-                #     solution = solution_old.replace(' \\  x', 'x')
                 pattern = r"\b\w+\(([^,]+)"
                 pattern_exception = r'\([^,]+,\s*[^,]+,\s*[^)]+\)'
                 x = Symbol('x')
@@ -59,14 +51,12 @@ class CalculusController:
                                         step.append([format_output(str(arg)),
                                                 format_output(str(result)),
                                                 format_output(str(conclu))])
-                                        print(step[0])
                                         break
                                     except:
                                         break
                                 else:
                                     if 'Integral' in str(arg):
                                         matches = re.findall(pattern, str(arg))
-                                        print("ducac")
                                         for match in matches:
                                             result = integrate(match, x)
                                             conclu = sympify(arg).doit()
@@ -76,7 +66,6 @@ class CalculusController:
                             else:
                                 if 'Integral' in str(arg):
                                     matches = re.findall(pattern, str(arg))
-                                    print("dumamay")
                                     for match in matches:
                                         result = integrate(match, x)
                                         conclu = sympify(arg).doit()
@@ -92,7 +81,6 @@ class CalculusController:
                         expression_rhs = latex2sympy(rhs)
                         expression_lhs = latex2sympy(lhs)
                         expression = expression_lhs - expression_rhs
-                        print('~~~~~~~~', expression)
                         equation = Eq(expression, 0)
                         x, y, u = symbols('x y u')
                         
@@ -197,12 +185,8 @@ class CalculusController:
                 try:
                     input = ''
                     output = ''
-                    print("nam mô")
-                    print('datatatataat', data)
                     input = format_sketch_data(data)
                     output = solution
-                    print("iiiinput", input)
-                    print("oooutput", output)
                     
                     if '=' in data:
                         equation_string = input
@@ -215,7 +199,6 @@ class CalculusController:
                         return jsonify({'equation': data, 'result': solution, 'step': step})
 
                     x = symbols('x')
-                    print("vaicalon")
                     # f = lambda x_val: expr.subs(x, x_val)
                     func = lambdify(x, expr, "numpy")
                     x_values = np.linspace(-2, 5, 400)
@@ -246,7 +229,6 @@ class CalculusController:
                     print(e)
                     return jsonify({'message': 'error'})
             except ValueError:
-                print('lalalallaallascascsacascsac')
                 return jsonify({'message': "error"})
     
     
@@ -345,5 +327,3 @@ class CalculusController:
                             ,'category': category
                             ,'result': result.tolist()
                             , 'step': step})
-       
-        
