@@ -18,10 +18,27 @@ import cv2
 script_dir = os.path.dirname(os.path.abspath(__file__))
 server_dir = os.path.dirname(os.path.dirname(script_dir))
 
+
 class AIController:
     def AIforApp():
         if request.method == "POST":
             try:
+                def find_file(start_dir, filename):
+                    for dirpath, filenames in os.walk(start_dir):
+                        if filename in filenames:
+                            return os.path.join(dirpath, filename)
+                    return None
+
+                # Example usage:
+                start_directory = '/opt/render/project/aima-server/calController/model/'
+                file_to_find = 'model.pth'
+
+                result = find_file(start_directory, file_to_find)
+                if result:
+                    print(f"Found {file_to_find} at: {result}")
+                else:
+                    print(f"{file_to_find} not found in {start_directory} or its subdirectories.")
+
                 model_path = os.path.join(server_dir, 'aima-server', 'calController', 'model', 'model.pth')
 
                 if not os.path.exists(model_path):
