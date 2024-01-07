@@ -22,12 +22,13 @@ class AIController:
     def AIforApp():
         if request.method == "POST":
             try:
-                model_dir = os.path.join(server_dir, 'aima-server/model/model.pth')
+                model_path = os.path.join(server_dir, 'model')
 
-                if not os.path.exists(model_dir):
+                if not os.path.exists(model_path):
                     print('NO')
                     url = "https://drive.google.com/file/d/1sjb2oUc00oIrh3FCIDYipvEEb_z-9Y2b/view?usp=drive_link"
-                    gdown.download(url, model_dir, quiet=False,fuzzy=True)
+                    gdown.download(url, model_path, quiet=False,fuzzy=True)
+                    print('downloaded from gg drive')
                     
                 print('YES')
                 print('excute model')
@@ -47,7 +48,7 @@ class AIController:
                 image_bytes = BytesIO(base64.b64decode(image_base64))
                 img = Image.open(image_bytes)
                 # weight_path = 'C:/Users/user/Documents/Thesis/Thesis/flask-server/mixed_e25_step16296.pth'
-                weight_path = model_dir
+                weight_path = model_path
                 arguments = Munch({'config': 'settings/config.yaml', 'checkpoint': weight_path, 'no_cuda': True, 'no_resize': True})
                 # img = Image.open(image_bytes)
                 
