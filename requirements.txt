@@ -13,3 +13,4 @@ opencv-python
 pix2tex
 Pillow
 requests
+torch
