@@ -6,3 +6,10 @@ latex2sympy2
 scipy
 sympy
 matplotlib
+gdown
+munch
+torchvision
+opencv-python
+pix2tex
+Pillow
+requests

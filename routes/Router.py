@@ -6,6 +6,7 @@ from routes.calculator.DiffnInt import DiffnInt
 from routes.calculator.CFitting import CFitting
 from routes.calculator.Geometric import Geometric
 from routes.calculator.Proba import Proba
+from routes.calculator.AIScan import AIScan
 
 class Router:
   def run(app):
@@ -18,6 +19,4 @@ class Router:
     app.register_blueprint(CFitting, url_prefix='/CFitting')
     app.register_blueprint(Geometric, url_prefix='/Geometric')
     app.register_blueprint(Proba, url_prefix='/Probability')
-
-
-    
+    app.register_blueprint(AIScan, url_prefix='/AIScanner')

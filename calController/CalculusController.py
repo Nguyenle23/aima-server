@@ -7,184 +7,247 @@ import matplotlib.pyplot as plt
 import io
 import base64
 from scipy.optimize import fsolve
+import json
+import os
 
 
 class CalculusController: 
     def fundamental():
         if request.method == "POST":
-            temp_symbol = '###'
-            def format_output(output):
-                pattern_power = r'\(([^)]+)\)\^\(([^)]+)\)'
-                pattern_sqrt = r'sqrt\((.*?)\)'
-                modified_string = re.sub(pattern_power, r'(\1)^{\2}', output.replace('**', temp_symbol).replace('*', '').replace(temp_symbol, '^').replace(r'sqrt', r'\sqrt'))
-                modified_string = re.sub(pattern_sqrt, r'sqrt{\1}', modified_string)
-                return modified_string
-            def format_sketch_data(data):
-                data = data.replace(' ', '').replace('^', '**').replace('\\','').replace('{','(').replace('}',')')
-                div_string = re.sub(r'frac\((.*?)\)\((.*?)\)', r'(\1 / \2)', data)
-                # frac_match = re.search(r'frac\((.*?)\)\((.*?)\)(?:=(.*))?', data)
-                # if frac_match:
-                #     numerator = frac_match.group(1)
-                #     denominator = frac_match.group(2)
-                #     value = frac_match.group(3) if frac_match.group(3) else ''
-                #     div_string = f'{numerator} / {denominator}'
-                #     if value:
-                #         div_string += f' = {value}'
-                #     return div_string
-                # else:
-                #     return data
-                return div_string
-
-            step = []
-            data = request.json['data']
-            raw_data = repr(data)
-            expr = sympify(raw_data)
-            sympy_converter = latex2sympy(expr)
-            solution_old = latex2latex(expr)
             try:
-                solution = latex(expand(latex2sympy(solution_old)))
-            except:
-                solution = solution_old.replace(' \\  x', 'x')
-            pattern = r"\b\w+\(([^,]+)"
-            pattern_exception = r'\([^,]+,\s*[^,]+,\s*[^)]+\)'
-            print(solution)
-            x = Symbol('x')
-            if '=' not in expr:
-                for arg in sympy_converter.args:
-                        if len(sympy_converter.args) == 2:
-                            match = re.match(pattern_exception, str(sympy_converter.args[1]))  
-                            if match:
-                                try:
-                                    result = integrate(arg, x)
-                                    conclu = sympify(sympy_converter).doit()
-                                    step.append([format_output(str(arg)),
-                                            format_output(str(result)),
-                                            format_output(str(conclu))])
-                                    print(step[0])
-                                    break
-                                except:
-                                    break
+                # os.chdir("flask-server") 
+                # file_name = 'mixed_e25_step16296.pth'
+                # print(os.path.abspath(file_name)) 
+                temp_symbol = '###'
+                def format_output(output):
+                    pattern_power = r'\(([^)]+)\)\^\(([^)]+)\)'
+                    pattern_sqrt = r'sqrt\((.*?)\)'
+                    modified_string = re.sub(pattern_power, r'(\1)^{\2}', output.replace('**', temp_symbol).replace('*', '').replace(temp_symbol, '^').replace(r'sqrt', r'\sqrt'))
+                    modified_string = re.sub(pattern_sqrt, r'sqrt{\1}', modified_string)
+                    return modified_string
+                def format_sketch_data(data):
+                    rhs = data.split('=')[-1].strip()
+                    lhs = data.split('=')[0].strip()
+                    expression_rhs = latex2sympy(rhs)
+                    expression_lhs = latex2sympy(lhs)
+                    expression = expression_lhs - expression_rhs
+                    return expression
+
+                step = []
+                data = request.json['data']
+                raw_data = repr(data)
+                expr = sympify(raw_data)
+                sympy_converter = latex2sympy(expr)
+                solution = latex2latex(expr)
+
+                # solution_old = latex2latex(expr)
+                # try:
+                #     solution = latex(expand(latex2sympy(solution_old)))
+                # except:
+                #     solution = solution_old.replace(' \\  x', 'x')
+                pattern = r"\b\w+\(([^,]+)"
+                pattern_exception = r'\([^,]+,\s*[^,]+,\s*[^)]+\)'
+                x = Symbol('x')
+                if '=' not in expr:
+                    for arg in sympy_converter.args:
+                            if len(sympy_converter.args) == 2:
+                                match = re.match(pattern_exception, str(sympy_converter.args[1]))  
+                                if match:
+                                    try:
+                                        result = integrate(arg, x)
+                                        conclu = sympify(sympy_converter).doit()
+                                        step.append([format_output(str(arg)),
+                                                format_output(str(result)),
+                                                format_output(str(conclu))])
+                                        print(step[0])
+                                        break
+                                    except:
+                                        break
+                                else:
+                                    if 'Integral' in str(arg):
+                                        matches = re.findall(pattern, str(arg))
+                                        print("ducac")
+                                        for match in matches:
+                                            result = integrate(match, x)
+                                            conclu = sympify(arg).doit()
+                                            step.append([format_output(match),
+                                                format_output(str(result)),
+                                                format_output(str(conclu))])
                             else:
                                 if 'Integral' in str(arg):
                                     matches = re.findall(pattern, str(arg))
+                                    print("dumamay")
                                     for match in matches:
                                         result = integrate(match, x)
                                         conclu = sympify(arg).doit()
                                         step.append([format_output(match),
-                                            format_output(str(result)),
-                                            format_output(str(conclu))])
+                                                format_output(str(result)),
+                                                format_output(str(conclu))])
+                                                
+                elif '=' in expr:
+                        rhs = expr.split('=')[-1].strip()
+                        lhs = expr.split('=')[0].strip()
+                        len_x = 0
+
+                        expression_rhs = latex2sympy(rhs)
+                        expression_lhs = latex2sympy(lhs)
+                        expression = expression_lhs - expression_rhs
+                        print('~~~~~~~~', expression)
+                        equation = Eq(expression, 0)
+                        x, y, u = symbols('x y u')
+                        
+                        try:
+                            poly_equation = Poly(equation.lhs, x)
+                            coefficients = poly_equation.all_coeffs()
+                            all_degrees = [degree(term) for term in poly_equation.as_expr().as_ordered_terms()]
+                        except Exception as e:
+                            coefficients = []
+                            all_degrees = []
+                        
+                        all_factors = factor(expression)
+                        ordered_factors = all_factors.as_ordered_factors()     
+                        rounded_vals = []
+
+                        def re_calc(values):
+                            for value in values:
+                                value = latex(value)
+                                value = value.replace(" i", "I")
+                                step.append(f"Subtitute back \\(u = x^{{2}}\\) and solve for x")
+                                problem = f"x^2 = {value}"
+                                step.append(f"\\({latex2latex(problem)}\\)")
+
+                        def immediately_cal(equation):
+                            return latex2latex(equation)    
+
+                        def rounded_cal(equation):
+                            latex_eq = latex(equation)
+                            if len(latex2latex(latex_eq)) > 200:
+                                # cách giải cho các bài toán k có rule (done)
+                                if type(latex2sympy(latex_eq)[0]) == type(Eq(x, 1)):
+                                    print(True)
+                                else:
+                                    print(False)
+                                for i in latex2sympy(latex_eq):
+                                    print("lenenene", len(latex2sympy(latex_eq)))
+                                    expression = i
+                                    result = expression.rhs.evalf()
+                                    rounded_result = round(result, 4)
+                                    # rounded_expression = Eq(x, rounded_result)
+                                    rounded_vals.append(str(rounded_result))
+                                return rounded_vals
+                            else:
+                                # cách giải cho các bài toán k có rule (done)
+                                return immediately_cal(latex_eq) 
+                        
+                        def quadric_cal(equation):
+                            a = coefficients[0] #6
+                            b = coefficients[1] #13
+                            c = coefficients[2] #3
+                            delta = b**2 - 4*a*c
+                            step.append(f"First, we have to check by calculate: \\(\\Delta = b^{{2}} - 4ac\\) = {delta}")
+                            if delta > 0:
+                                step.append("Because \\(\\Delta > 0 \\), so equation has two solutions, which can be calculated by:")
+                                x1 = (-b + sqrt(delta))/ (2*a)
+                                x2 = (-b - sqrt(delta))/ (2*a)
+                                step.append(f"\\(\\frac{{-b \\pm \\sqrt{{\\Delta}}}}{{2a}}\\)")
+                                step.append(f"Value of \\(x_1 = {latex(x1)}\\) and \\(x_2 = {latex(x2)}\\)")
+                            elif delta == 0:
+                                step.append("Because \\(\\Delta = 0 \\), so equation has one solutions, which can be calculated by:")
+                                x = -b/ (2*a)
+                                step.append(f"\\(\\frac{{-b}}{{2a}}\\)")
+                                step.append(f"Value of \\(x = {latex(x)}\\)")
+                            else:
+                                step.append("Because \\(\\Delta < 0 \\), so the equation has no solution")
+                                step.append("It only has the complex values:")
+                                step.append(f"\\(x = {rounded_cal(equation)} \\)")
+                        
+                        if (len(ordered_factors) == 1 and not ordered_factors[0].is_number) or (len(ordered_factors) == 2 and ordered_factors[0].is_number):
+                            if all_degrees == [4, 2, 0] or all_degrees == [4, 2]:
+                                list = []
+                                # cách giải cho bài toán x^4 + x^2 + . . . (bổ sung step cụ thể)
+                                equation_u = expression.subs(x**4, u**2).subs(x**2, u)
+                                step.append("Rewrite the equation \\(u = x^{2}\\) and \\(u^{2} = x^{4}\\)")
+                                solution_step = solve(equation_u)
+                                step.append(f"Solve \\({latex(equation_u)} = 0\\) ")
+                                step.append(f"We have: \\(u = {latex(solution_step)}\\)")
+                                step.append(re_calc(solution_step))
+                                for j in solution_step:
+                                    j = latex(j)
+                                    j = j.replace(" i", "I")
+                                    sol = latex2latex(f"x^2 = {j}")
+                                    list.append(sol)
+                                solution = str(list).replace("'[", "").replace("]'", "").replace("\\\\", "\\")
+                            elif len(all_degrees) !=0 and all_degrees[0] == 2:
+                                step.append(quadric_cal(equation))
+                            else:
+                                step.append(rounded_cal(equation))
+                                solution = rounded_cal(equation)
+                        elif len(ordered_factors) > 1:
+                            # cách giải cho các bài toán có thể đặt thừa số chung (done)
+                            step.append(f"Transforming the equation, we have, \\({latex(factor(expression))} = 0\\)")
+                            for ftr in ordered_factors:
+                                if not ftr.is_number:
+                                    solution_step = solve(ftr)
+                                    step.append(f"We have \\({latex(ftr)} = 0\\), so x = \\({latex(solution_step)}\\)")
+                                    len_x += len(solution_step)
+                            step.append(f'Therefore, \\({data}\\) has {len_x} values \\({latex(solve(expression))}\\)')
                         else:
-                            if 'Integral' in str(arg):
-                                matches = re.findall(pattern, str(arg))
-                                for match in matches:
-                                    result = integrate(match, x)
-                                    conclu = sympify(arg).doit()
-                                    step.append([format_output(match),
-                                            format_output(str(result)),
-                                            format_output(str(conclu))])
-                                         
-            
-            try:
-                input = ''
-                output = ''
-                data = data.replace(' ', '').replace('\\left(', '(').replace('\\right)', ')')
-                print('datatatataat', data)
-                solution = solution.replace(' ', '')
-                for i in range(len(data)):
-                    if (data[i] == 'x' or data[i] == 'y' or data[i] == '(') and i > 0 and data[i - 1].isdigit():
-                        input += '*' + data[i]
+                            # tính toán thông thường
+                            step.append(factor(expression))
+                try:
+                    input = ''
+                    output = ''
+                    print("nam mô")
+                    print('datatatataat', data)
+                    input = format_sketch_data(data)
+                    output = solution
+                    print("iiiinput", input)
+                    print("oooutput", output)
+                    
+                    if '=' in data:
+                        equation_string = input
+                        expr = equation_string
+                    elif 'x' in output:
+                        equation_string = output
+                        print("equation_stringequation_stringequation_string", equation_string)
+                        expr = simplify(latex2sympy(equation_string))
                     else:
-                        input += data[i]
-                
-                input = format_sketch_data(input)
-                
-                for i in range(len(solution)):
-                    if (solution[i] == 'x' or solution[i] == 'y' or solution[i] == '(') and i > 0 and solution[i - 1].isdigit():
-                        output += '*' + solution[i]
-                    else:
-                        output += solution[i]
-                output = format_sketch_data(output)
+                        return jsonify({'equation': data, 'result': solution, 'step': step})
 
-                if '=' in input:
-                    old_equation_string = input
-                    # print('lalal', old_equation_string)
-                elif 'x' in output:
-                    old_equation_string = output
-                else:
-                    return jsonify({'equation': data, 'result': solution, 'step': step})
+                    x = symbols('x')
+                    print("vaicalon")
+                    # f = lambda x_val: expr.subs(x, x_val)
+                    func = lambdify(x, expr, "numpy")
+                    x_values = np.linspace(-2, 5, 400)
+                    y_values = func(x_values)   
+                    plt.figure(figsize=(8, 6))
+                    plt.plot(x_values, y_values, label=f'y = {latex(expr)}')
+                    plt.title('Graph of ' + f'y = {latex(expr)}')
+                    plt.xlabel('x')
+                    plt.ylabel('y')
+                    plt.grid(True)
+                    # Save image
+                    buffer = io.BytesIO()
+                    plt.savefig(buffer, format='png')
+                    buffer.seek(0)
 
-                if '=' in old_equation_string:
-                    lhs, rhs = old_equation_string.split('=')
-                    lhs = lhs.strip()
-                    rhs = format_sketch_data(rhs.strip())
-                    equation_string = f"{lhs} - ({rhs})"
-                else:
-                    equation_string = old_equation_string
+                    base64_encoded = base64.b64encode(buffer.read()).decode()
 
-                # Convert string to a SymPy expression
-                x = symbols('x')
-                expr = sympify(equation_string)
-                func = lambdify(x, expr, "numpy")
+                    plt.close()
 
-                # Create the plot
-                x_values = np.linspace(-5, 5, 400)
-                y_values = func(x_values)
+                    base64_data_uri = "data:image/png;base64," + base64_encoded
+                    print('data:', data)
+                    print('solution:', solution)
+                    print("Step ở đây", step)
 
-                plt.figure(figsize=(8, 6))
-                plt.plot(x_values, y_values, label=f'y = {latex(expr)}')
-                plt.title('Graph of ' + f'y = {latex(expr)}')
-                plt.xlabel('x')
-                plt.ylabel('y')
-
-                # Find the intersection points using fsolve
-                def equation_to_solve_x(x):
-                    return func(x)
-
-                def equation_to_solve_y(y):
-                    return func(0) - y
-
-                initial_guesses_x = [-4, -1, 1, 4]  # Initial guesses for roots along x-axis
-                initial_guesses_y = [-4, -1, 1, 4]  # Initial guesses for roots along y-axis
-                intersection_points = []
-
-                for guess_x in initial_guesses_x:
-                    root_x = fsolve(equation_to_solve_x, guess_x)
-                    if len(root_x) > 0:
-                        intersection_points.extend([(root_x[0], 0)])
-
-                for guess_y in initial_guesses_y:
-                    root_y = fsolve(equation_to_solve_y, guess_y)
-                    if len(root_y) > 0:
-                        intersection_points.extend([(0, root_y[0])])
-
-                # x_axis_position = intersection_points[0][0]
-                # y_axis_position = intersection_points[0][1]
-
-                plt.ylim(-20, 20)
-                # Plot intersection points and annotate them
-                for point in intersection_points:
-                    plt.scatter(point[0], point[1], color='red')
-                    plt.annotate(f'({point[0]:.2f}, {point[1]:.2f})', point, textcoords="offset points", xytext=(-10,10), ha='center', fontsize=8, color='red')
-
-                plt.grid(True)
-
-                # Save image
-                buffer = io.BytesIO()
-                plt.savefig(buffer, format='png')
-                buffer.seek(0)
-
-                base64_encoded = base64.b64encode(buffer.read()).decode()
-
-                plt.close()
-
-                base64_data_uri = "data:image/png;base64," + base64_encoded
-                # print(base64_data_uri)
-                print('data:', data)
-                print('solution:', solution)
-                return jsonify({'equation': data, 'result': solution, 'step': step, 'img': base64_data_uri})
-            except:
-                return jsonify({'message': 'error'})
-    
+                    # return jsonify({'equation': data, 'result': solution, 'step': step, 'img': base64_data_uri})
+                    return jsonify({'result': solution,'equation': data , 'step': step, 'img': base64_data_uri})
+                except Exception as e:
+                    print(e)
+                    return jsonify({'message': 'error'})
+            except ValueError:
+                print('lalalallaallascascsacascsac')
+                return jsonify({'message': "error"})
     
     
     def LinearAlgebra():
@@ -283,4 +346,4 @@ class CalculusController:
                             ,'result': result.tolist()
                             , 'step': step})
        
-    
+        
