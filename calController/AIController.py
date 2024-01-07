@@ -6,14 +6,15 @@ import gdown
 from latex2sympy2 import latex2latex
 from pix2tex import cli as pix2tex
 
-from io import BytesIO
 import os
+from io import BytesIO
 from PIL import Image
 import base64
 import requests
 from munch import Munch
 from torchvision import transforms
 import cv2
+import torch
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 server_dir = os.path.dirname(os.path.dirname(script_dir))
@@ -23,29 +24,11 @@ class AIController:
     def AIforApp():
         if request.method == "POST":
             try:
-                def find_file(start_dir, filename):
-                    for dirpath, filenames in os.walk(start_dir):
-                        if filename in filenames:
-                            return os.path.join(dirpath, filename)
-                    return None
-
-                # Example usage:
-                start_directory = '/opt/render/project/aima-server/calController/model/'
-                file_to_find = 'model.pth'
-
-                result = find_file(start_directory, file_to_find)
-                if result:
-                    print(f"Found {file_to_find} at: {result}")
-                else:
-                    print(f"{file_to_find} not found in {start_directory} or its subdirectories.")
-
                 model_path = os.path.join(server_dir, 'aima-server', 'calController', 'model', 'model.pth')
+                load_by_torch = torch.load(model_path, map_location=torch.device('cpu'))
 
-                if not os.path.exists(model_path):
+                if load_by_torch == None:
                     print('NO')
-                    url = "https://drive.google.com/file/d/1sjb2oUc00oIrh3FCIDYipvEEb_z-9Y2b/view?usp=drive_link"
-                    gdown.download(url, model_path, quiet=False,fuzzy=True)
-                    print('downloaded from gg drive')
                     
                 print('YES')
                 print('excute model')
@@ -64,10 +47,9 @@ class AIController:
                 
                 image_bytes = BytesIO(base64.b64decode(image_base64))
                 img = Image.open(image_bytes)
-                # weight_path = 'C:/Users/user/Documents/Thesis/Thesis/flask-server/mixed_e25_step16296.pth'
-                weight_path = model_path
+                
+                weight_path = load_by_torch
                 arguments = Munch({'config': 'settings/config.yaml', 'checkpoint': weight_path, 'no_cuda': True, 'no_resize': True})
-                # img = Image.open(image_bytes)
                 
 
                 image_bytes_pre = base64.b64decode(image_base64)
