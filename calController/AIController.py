@@ -22,7 +22,7 @@ class AIController:
     def AIforApp():
         if request.method == "POST":
             try:
-                model_path = os.path.join(server_dir, 'model')
+                model_path = os.path.join(server_dir, 'aima-server/model/model.pth')
 
                 if not os.path.exists(model_path):
                     print('NO')

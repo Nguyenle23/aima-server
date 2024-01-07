@@ -19,7 +19,7 @@ class CalculusController:
                 def format_output(output):
                     pattern_power = r'\(([^)]+)\)\^\(([^)]+)\)'
                     pattern_sqrt = r'sqrt\((.*?)\)'
-                    modified_string = re.sub(pattern_power, r'(\1)^{\2}', output.replace('**', temp_symbol).replace('*', '').replace(temp_symbol, '^').replace(r'sqrt', r'\sqrt'))
+                    modified_string = re.sub(pattern_power, r'(\1)^{\2}', output.replace('*', temp_symbol).replace('', '').replace(temp_symbol, '^').replace(r'sqrt', r'\sqrt'))
                     modified_string = re.sub(pattern_sqrt, r'sqrt{\1}', modified_string)
                     return modified_string
                 def format_sketch_data(data):
@@ -105,6 +105,7 @@ class CalculusController:
                                 step.append(f"\\({latex2latex(problem)}\\)")
 
                         def immediately_cal(equation):
+                            print(123123123123123)
                             return latex2latex(equation)    
 
                         def rounded_cal(equation):
@@ -116,12 +117,15 @@ class CalculusController:
                                 else:
                                     print(False)
                                 for i in latex2sympy(latex_eq):
-                                    print("lenenene", len(latex2sympy(latex_eq)))
+                                    # print(i)
+                                    # print("lenenene", len(latex2sympy(latex_eq)))
+                                    print("===", 1)
                                     expression = i
                                     result = expression.rhs.evalf()
                                     rounded_result = round(result, 4)
                                     # rounded_expression = Eq(x, rounded_result)
                                     rounded_vals.append(str(rounded_result))
+                                # print(latex2sympy(latex_eq))
                                 return rounded_vals
                             else:
                                 # cách giải cho các bài toán k có rule (done)
@@ -168,7 +172,7 @@ class CalculusController:
                             elif len(all_degrees) !=0 and all_degrees[0] == 2:
                                 step.append(quadric_cal(equation))
                             else:
-                                step.append(rounded_cal(equation))
+                                # step.append(rounded_cal(equation))
                                 solution = rounded_cal(equation)
                         elif len(ordered_factors) > 1:
                             # cách giải cho các bài toán có thể đặt thừa số chung (done)
