@@ -17,7 +17,7 @@ import cv2
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 server_dir = os.path.dirname(os.path.dirname(script_dir))
-model_dir = os.path.join(server_dir, 'flask-server' ,'model', 'model.pth')
+model_dir = os.path.join(server_dir, 'aima-server' ,'model', 'model.pth')
 print(f"{model_dir}")
 
 class AIController:
